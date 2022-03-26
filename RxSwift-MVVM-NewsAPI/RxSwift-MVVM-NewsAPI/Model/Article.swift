@@ -11,8 +11,16 @@ struct APIResponse: Decodable {
     let articles: [Article]
 }
 
-struct Article: Decodable {
-    let title: String
-    let description: String
-    let url:String
+struct Article: Codable {
+    let title: String?
+    let description: String?
+    let url:String?
+    
+    enum CodingKeys: String, CodingKey {
+            case title = "title"
+            case description = "description"
+            case url = "url"
+        }
+
+    var _url: URL? { URL.init(string: url!) }
 }
