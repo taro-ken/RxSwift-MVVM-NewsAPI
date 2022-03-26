@@ -8,41 +8,39 @@
 import UIKit
 import RxSwift
 
-class NewsListViewController: UIViewController, UITableViewDelegate {
-
+final class NewsListViewController: UIViewController, UITableViewDelegate {
+    
     private var viewModel = NewsListViewModel()
     private var disposeBag = DisposeBag()
-
     
-    @IBOutlet weak var newsListTableView: UITableView! {
+    
+    @IBOutlet private weak var newsListTableView: UITableView! {
         didSet {
             newsListTableView.register(NewsCell.nib(), forCellReuseIdentifier: NewsCell.identifier)
             newsListTableView.tableFooterView = UIView()
         }
     }
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         bind()
         viewModel.requestDataSource()
     }
-
+    
     private func bind() {
-        // 以下、UITableViewDelegateの準拠は必須
-        // viewModel側で保持しているデータソースとtableViewのDataSourceをbindする（UITableViewDataSource役）
         viewModel.articles
             .bind(to: newsListTableView.rx.items(cellIdentifier: NewsCell.identifier,
                                                  cellType: NewsCell.self)) { (row, element, cell) in
-                                                    cell.setInfo(info: element)
-        }
-        .disposed(by: disposeBag)
-
-        // リスト表示している要素をタップに合わせて購読する（UITableViewDelegateのdidSelect役）
+                cell.setInfo(info: element)
+            }.disposed(by: disposeBag)
+        
         newsListTableView.rx
             .modelSelected(Article.self)
             .subscribe(onNext:  { article in
-                print(article.title)
-                print(article.url)
+                guard let url = article._url else {
+                    return
+                }
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
             })
             .disposed(by: disposeBag)
     }
